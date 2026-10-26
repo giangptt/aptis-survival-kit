@@ -36,7 +36,7 @@ flowchart LR
   B --> C{Chế độ}
   C -- Quiz --> D["Chọn → Kiểm tra → giải thích → Câu tiếp"]
   C -- Flashcard --> E["Lật → chấm Quên/Khó/Được/Dễ → SRS"]
-  C -- Writing --> F["Viết → Nộp → bài mẫu + kiểm tra tự động → tự chấm"]
+  C -- Writing --> F["Viết → Nộp → báo cáo (điểm, lỗi đánh số, nên sửa trước) → sửa lại & chấm lại"]
   C -- Speaking --> G["Chuẩn bị → Nói (bấm giờ, ghi âm tuỳ chọn) → bài mẫu → tự chấm"]
   D --> H["Tổng kết: điểm, câu sai, làm lại câu sai, bộ tiếp theo"]
   E --> H
@@ -63,7 +63,7 @@ flowchart TD
   K --> L["/mock/result/:id: Estimated CEFR, Weakest, gợi ý"]
 ```
 - Thoát giữa chừng: tiến độ giữ ở mức phần đã xong; phần đang làm dở làm lại từ đầu khi quay lại (`/mock` hiện nút "Tiếp tục").
-- Writing/Speaking: sau khi nộp có bài mẫu và bước **tự chấm**; điểm nhân 0,9.
+- Writing: sau khi nộp có **báo cáo tự động** (điểm ước tính, lỗi, việc nên sửa) và bài mẫu; trong Mock bấm "Tiếp tục" để sang bài sau (không sửa lại). Speaking: bài mẫu rồi **tự chấm**, điểm nhân 0,9.
 
 ## 3.5 Diagnostic cuối (Ngày 30)
 Ngày 30 giao Đề B (cùng độ khó, câu khác). Báo cáo so với Đề A: điểm tuyệt đối, % thay đổi, đạt/chưa đạt tiêu chí +20% (hoặc ≥ 90/100).

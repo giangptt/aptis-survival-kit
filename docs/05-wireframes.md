@@ -151,10 +151,18 @@ PHẦN 2/4 · Grammar                       ▓▓▓▓▓▓░░░░░░
 │ (khung viết)                               │
 └────────────────────────────────────────────┘
  43 từ · yêu cầu 40–50 ✓
- [Nộp & so sánh với bài mẫu]
- ──→ Hai cột: Bài của bạn | Bài mẫu B2
-     ✓ Có lời chào  ✗ Từ nối B2 0/2 — thêm however, as a result…
-     Tự chấm 4 tiêu chí (1–5) → [Lưu điểm tự chấm]
+ [Nộp & xem nhận xét]
+ ──→ ┌ 21,1/50  [Ước tính A2–B1] [khoảng 16–26] [độ tin cậy: thấp (bài ngắn)] ┐
+     │ Tóm tắt 2 câu · "Cách đọc điểm này: không hiểu nội dung…"               │
+     └─────────────────────────────────────────────────────────────────────────┘
+     Bốn tiêu chí (0–5): Hoàn thành ▓▓▓▓▓░ · Ngữ pháp ▓▓░░░░ · Từ vựng ▓▓░░░░ · Liên kết ▓▓▓░░░
+     ⚠ Điều đang giữ điểm của bạn: Để lên B2: … (từng lý do cụ thể)
+     [Nên sửa trước: 1…3, kèm link ôn chủ điểm]   [Điểm mạnh]
+     Bài của bạn — lỗi đánh số: "hi①  jack … i② like … see③ you"
+       1. [Dấu câu & viết hoa] hi → Hi — giải thích   2. …   3. …
+     ▸ Bài mẫu B2 để so sánh
+     🧑‍🏫 Giáo viên chấm: [⬇ Xuất bài (.md)]  ▸ Nhập điểm giáo viên (4 ô 0–5 + nhận xét)
+     [✏️ Sửa lại bài & chấm lại]  [Đề tiếp theo →]  → hiện "+x điểm so với lần trước"
 ```
 
 ## 5.9 Speaking
@@ -177,7 +185,7 @@ PHẦN 2/4 · Grammar                       ▓▓▓▓▓▓░░░░░░
 └─────────────────────────────────────────────────────────────────────────────┘
 ┌ Điểm từng kỹ năng ─────────────┐ ┌ Radar ──────────────────────┐
 │ G&V       41/50 [B2] ▓▓▓▓▓▓▓  │ │      G&V                     │
-│ Writing   36/50 [B1] (tự chấm) │ │  Speaking  Reading (vòng B2) │
+│ Writing   36/50 [B1] (ước tính tự động) │ │  Speaking  Reading (vòng B2) │
 └────────────────────────────────┘ └──────────────────────────────┘
 ┌ Weakest skills & gợi ý ───────────────────────────────────────────┐
 │ ✍ Writing — 36/50: • … • … [Luyện Writing]                        │

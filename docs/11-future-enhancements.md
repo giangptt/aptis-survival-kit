@@ -3,7 +3,7 @@
 Sắp theo giá trị cho người học / công sức. Mỗi mục nêu ràng buộc cần cân nhắc vì sản phẩm đang "local, không backend".
 
 ## Giá trị cao, công sức vừa
-1. **Chấm Writing bằng AI (tuỳ chọn, người dùng tự cung cấp khoá API)** — phản hồi lỗi ngữ pháp/bố cục theo tiêu chí Aptis. *Ràng buộc*: gọi mạng phá vỡ "offline"; phải để tắt mặc định, không lưu khoá trong file sao lưu, cảnh báo gửi bài viết ra ngoài.
+1. **Chấm Writing bằng AI (tuỳ chọn)** — bản offline đã có ([12](12-writing-assessment.md)); AI sẽ hiểu nội dung và lập luận tốt hơn. **Chưa làm có chủ ý vì repo public**: không được nhúng khoá API. *Ràng buộc nếu làm*: mỗi người dùng tự cung cấp khoá hoặc dùng máy chủ trung gian giữ khoá có giới hạn lượt; khoá không bao giờ vào repo/file sao lưu/xuất dữ liệu; tắt mặc định; thông báo bài viết gửi ra ngoài; giữ bộ chấm offline làm dự phòng; đánh giá lại bằng bài đã có điểm giáo viên.
 2. **Chấm Speaking bằng nhận dạng giọng nói** (Web Speech `SpeechRecognition` để đếm từ/độ trôi chảy thô, hoặc mô hình chạy cục bộ WASM). *Ràng buộc*: độ chính xác với giọng Việt; `SpeechRecognition` của Chrome gửi âm thanh lên máy chủ.
 3. **Ngân hàng đề lớn hơn + chế độ "đề theo kỹ năng yếu"**: chọn câu theo thẻ lỗi (`tag`) đã sai nhiều; hiện đã có `tag`/`lvl` trên câu hỏi nên khả thi.
 4. **Sổ tay lỗi (error log)**: tự gom các câu sai (cả từ vựng và ngữ pháp) thành một bộ ôn riêng theo SRS.
@@ -17,7 +17,7 @@ Sắp theo giá trị cho người học / công sức. Mỗi mục nêu ràng b
 10. **Chế độ giáo viên/nhóm**: xuất báo cáo tiến độ PDF cho giáo viên hoặc quản lý đào tạo.
 
 ## Chất lượng & vận hành
-11. **Hiệu chỉnh mô hình chấm bằng dữ liệu thật**: thu (ẩn danh, đồng ý) điểm Mock + kết quả thi chính thức để chỉnh ngưỡng, σ, hệ số tự chấm.
+11. **Hiệu chỉnh mô hình chấm bằng dữ liệu thật**: thu (ẩn danh, đồng ý) điểm Mock + kết quả thi chính thức để chỉnh ngưỡng, σ, hệ số tự chấm Speaking, và (quan trọng nhất) bộ chấm Writing bằng bài có điểm giáo viên ([12.9](12-writing-assessment.md)).
 12. **Rà soát nội dung bởi giáo viên** và quy trình đóng góp nội dung (PR + `validate-data` chạy trong CI).
 13. **CI**: chạy `npm test` và `smoke.js` trên mỗi thay đổi; thêm kiểm trên Firefox/WebKit (Playwright).
 14. **Kiểm thử trợ năng sâu hơn**: axe-core, kiểm bằng NVDA/VoiceOver, chế độ tương phản cao, font hỗ trợ đọc (dyslexia-friendly).

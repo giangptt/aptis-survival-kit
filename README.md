@@ -24,7 +24,7 @@ Tiến độ lưu trong **LocalStorage** của trình duyệt. Đổi trình duy
 | Ngữ pháp | 8 chủ điểm × giải thích, ví dụ, câu B1, câu B2, review quiz (tổng 150+ câu có giải thích) |
 | Reading | 4 dạng Aptis (điền từ, sắp xếp đoạn, ghép ý kiến, ghép tiêu đề), timer, giải thích, thống kê |
 | Listening | 16 bài (hội thoại, thông báo, phỏng vấn, thảo luận), phát bằng giọng đọc của trình duyệt, transcript, từ khoá, bẫy |
-| Writing | 4 task × 4 đề, bài mẫu B2, đếm từ, kiểm tra tự động, tự chấm theo tiêu chí |
+| Writing | 4 task × 4 đề, bài mẫu B2, đếm từ; **bộ chấm & nhận xét offline** (điểm /50 + khoảng tin cậy, 4 tiêu chí, lỗi đánh số trong bài, việc nên sửa trước, sửa lại và chấm lại, hồ sơ lỗi hay mắc, xuất bài cho giáo viên + nhập điểm giáo viên) |
 | Speaking | 5 phần, câu hỏi ngẫu nhiên, bấm giờ, ghi âm (tuỳ chọn), bài mẫu B2, khung ARD/PREP |
 | Mock Test | Mini (~1 giờ) và Full (~2,5 giờ): CEFR ước tính, xác suất đạt B2, kỹ năng yếu, gợi ý |
 | Gamification | Streak, XP/cấp độ, mục tiêu tuần, 23 huy hiệu |
@@ -34,16 +34,18 @@ Tiến độ lưu trong **LocalStorage** của trình duyệt. Đổi trình duy
 ## Kiểm thử
 
 ```bash
-npm test                 # (hoặc) node tools/validate-data.js && node tests/unit.js
+npm test                 # (hoặc) node tools/validate-data.js && node tests/unit.js && node tests/analyzer.js
 PLAYWRIGHT_CORE=/đường/dẫn/playwright-core node tests/smoke.js   # E2E trên Chromium thật (cần playwright-core, không kèm theo)
 ```
 - `tools/validate-data.js`: kiểm tra toàn bộ nội dung (định dạng, trùng từ, đáp án, độ dài bài mẫu…).
 - `tests/unit.js`: 30 test cho lõi (SRS, chấm điểm, lộ trình, streak, huy hiệu, lưu trữ).
-- `tests/smoke.js`: 97 kiểm tra đầu-cuối: onboarding, Diagnostic, mọi route, mọi luồng luyện tập, Mini Mock, mobile, trợ năng, không lỗi console.
+- `tests/analyzer.js`: 152 kiểm tra bộ chấm Writing (từng luật, độ chính xác trên văn bản tự nhiên, bài mẫu, bài giả lập, độ nhạy, nhật ký giáo viên).
+- `tests/smoke.js`: 113 kiểm tra đầu-cuối: onboarding, Diagnostic, mọi route, mọi luồng luyện tập, Mini Mock, mobile, trợ năng, không lỗi console.
 
 ## Giới hạn cần biết
 
-- **Writing và Speaking không có giám khảo**: bạn so với bài mẫu và **tự chấm** (điểm được nhân hệ số 0,9 để bù xu hướng chấm cao).
+- **Writing được chấm bằng bộ luật offline, không phải giám khảo hay AI**: nó ước tính độ dài, bố cục, từ nối, từ vựng, ngữ pháp và bắt ~60 loại lỗi điển hình, nhưng **không hiểu nội dung** và chỉ bắt được lỗi nằm trong danh sách luật. Điểm luôn kèm khoảng tin cậy; bài giả lập dùng để kiểm thử do người phát triển tự viết, **chưa hiệu chỉnh bằng bài giáo viên đã chấm** (xem [docs/12](docs/12-writing-assessment.md)). Có thể xuất bài cho giáo viên và nhập điểm để đối chiếu.
+- **Speaking vẫn do bạn tự chấm** (điểm nhân hệ số 0,9 để bù xu hướng chấm cao).
 - **Listening dùng giọng đọc tổng hợp** của trình duyệt (offline), không phải bản ghi người thật.
 - **Ngưỡng CEFR và xác suất đạt B2 là ước lượng tham khảo**, không thay kết quả thi chính thức. Kiểm tra định dạng đề mới nhất với đơn vị tổ chức thi.
 - Phần mô tả ảnh (Speaking Part 2–3) dùng **mô tả bằng chữ + emoji** vì ứng dụng không kèm ảnh thật.

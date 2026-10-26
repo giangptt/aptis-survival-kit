@@ -70,7 +70,7 @@ Thời gian học chủ động được đo khi tab đang hiển thị và có 
 - 4 loại: Conversation, Announcement, Interview, Discussion (16 bài). Phát bằng text-to-speech, tốc độ chậm/thường/nhanh, nghe lại, transcript (sau khi làm), từ khoá được tô sáng, Common traps.
 
 ### Writing (FR-W)
-- Task 1 trả lời ngắn · Task 2 mạng xã hội · Task 3 email thân mật · Task 4 email trang trọng. Mỗi đề: yêu cầu, mẹo + cụm B2, đếm từ, bản nháp tự lưu, bài mẫu B2 (hiện sau khi nộp), kiểm tra tự động, checklist, tự chấm theo 4 tiêu chí.
+- Task 1 trả lời ngắn · Task 2 mạng xã hội · Task 3 email thân mật · Task 4 email trang trọng. Mỗi đề: yêu cầu, mẹo + cụm B2, đếm từ, bản nháp tự lưu, checklist. Nộp bài → **bộ chấm offline** cho điểm /50 kèm khoảng tin cậy, 4 tiêu chí (hoàn thành yêu cầu, ngữ pháp, từ vựng, liên kết), điều kiện còn thiếu để lên B2, lỗi đánh số ngay trong bài với lời giải thích tiếng Việt, việc nên sửa trước, bài mẫu B2; sửa lại và chấm lại; hồ sơ lỗi hay mắc; xuất bài cho giáo viên và nhập điểm giáo viên (ưu tiên hơn điểm tự động). Chi tiết: [12](12-writing-assessment.md).
 
 ### Speaking (FR-S)
 - 5 phần (cá nhân · mô tả ảnh · so sánh ảnh · thảo luận · nói kéo dài). Câu hỏi ngẫu nhiên, bấm giờ (chuẩn bị + nói), ghi âm tuỳ chọn (không lưu), bài mẫu B2, khung ARD/Overview-Details-Guess/Both-Difference-Preference/Opinion-Because-Example/PREP.
@@ -91,7 +91,7 @@ Thời gian học chủ động được đo khi tab đang hiển thị và có 
 | Responsive | Desktop + mobile; không cuộn ngang | ✅ kiểm thử ở 390px |
 | Trợ năng | Dark mode, cỡ chữ, giảm chuyển động, bàn phím, ARIA, tương phản AA | ✅ mọi cặp màu ≥ 4,5:1 (đã tính) |
 | Tập trung | Chế độ tập trung ẩn điều hướng | ✅ |
-| Hiệu năng | Không build, nạp nhanh | ✅ ~0,9 MB tổng (mã 263 KB, dữ liệu 608 KB, CSS 37 KB), nạp một lần từ đĩa |
+| Hiệu năng | Không build, nạp nhanh | ✅ ~1,0 MB tổng (mã 365 KB, dữ liệu 608 KB, CSS 40 KB), nạp một lần từ đĩa; chấm Writing ~14 ms/bài |
 | Riêng tư | Không gửi dữ liệu đi đâu; bản ghi âm không được lưu | ✅ |
 | Trình duyệt | Chrome/Edge/Safari/Firefox hiện hành | ✅ Chromium đã kiểm; Safari/Firefox chưa kiểm tự động |
 
@@ -103,7 +103,8 @@ Tài khoản/đồng bộ nhiều thiết bị, chấm Writing/Speaking bằng A
 |---|---|---|
 | Định dạng đề | Aptis General chính thức có 4 phần Speaking/Writing; yêu cầu của dự án chia Speaking thành 5 phần luyện (Part 4 = thảo luận ngắn, Part 5 = nói dài theo định dạng Part 4 thật) | Ghi rõ ở trang "Cấu trúc Aptis"; nhắc kiểm tra thông tin mới nhất |
 | Ngưỡng điểm | Ngưỡng CEFR (B2 = 38/50) và công thức xác suất là **ước lượng**, không phải thông số chính thức | Ghi chú trong kết quả Mock và trang Aptis |
-| Tự chấm | Writing/Speaking là điểm tự chấm, thường cao hơn thực tế | Hệ số 0,9, tiêu chí rõ, so với bài mẫu, độ dài chấm tự động |
+| Chấm Writing | Bộ luật offline không hiểu nội dung, chỉ bắt lỗi trong danh sách luật, chưa hiệu chỉnh bằng bài giáo viên chấm; có thể chấm thấp văn B2 ngắn gọn hoặc bỏ sót lỗi | Luôn ghi "ước tính tự động" + khoảng tin cậy; trần 43,9 (không trả mức C); điều kiện chạm B2; ưu tiên độ chính xác hơn độ phủ; đường dẫn giáo viên + đo độ lệch ([12](12-writing-assessment.md)) |
+| Tự chấm Speaking | Điểm Speaking vẫn do người học tự chấm, thường cao hơn thực tế | Hệ số 0,9, tiêu chí rõ, so với bài mẫu |
 | Listening | Giọng tổng hợp không giống bản ghi thật; chất lượng giọng phụ thuộc hệ điều hành | Chọn giọng/tốc độ trong Cài đặt; luôn có transcript |
 | Nội dung | Soạn bằng AI; đã kiểm tự động và rà mẫu nhưng chưa có chuyên gia ngôn ngữ rà toàn bộ | Khuyến nghị rà soát nội dung trước khi dùng giảng dạy chính thức |
 | Mất dữ liệu | LocalStorage gắn với trình duyệt | Sao lưu JSON; cảnh báo ở Cài đặt khi LocalStorage bị chặn |
@@ -114,3 +115,4 @@ Tài khoản/đồng bộ nhiều thiết bị, chấm Writing/Speaking bằng A
 - **Một bộ chạy Quiz dùng chung** cho Diagnostic, ngữ pháp, từ vựng, Reading, Listening và Mock → hành vi nhất quán, kiểm thử một lần.
 - **Lộ trình sinh từ dữ liệu khai báo + luật** (không lưu cứng nhiệm vụ) → đổi thời lượng/kỹ năng yếu là lộ trình tự cập nhật; chỉ lưu "đã làm gì".
 - **Xác suất B2 phạt kỹ năng yếu nhất** vì chứng nhận B2 cần đủ các kỹ năng.
+- **Chấm Writing bằng luật offline, chưa dùng AI**: repo public nên không thể nhúng khoá API; offline giữ được cam kết "không gửi bài đi đâu". AI chỉ là tuỳ chọn tương lai với ràng buộc ở [12](12-writing-assessment.md#1210-còn-chấm-bằng-ai-thì-sao).

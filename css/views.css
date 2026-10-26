@@ -201,3 +201,33 @@
 .chart .legend { margin-top: 0.2rem; }
 .chart .swatch.ch-f1, .chart .swatch.ch-f2, .chart .swatch.ch-f3 { background: currentColor; }
 .chart .swatch.ch-f1 { color: var(--c1); } .chart .swatch.ch-f2 { color: var(--c2); } .chart .swatch.ch-f3 { color: var(--c3); }
+
+/* ===== Writing: báo cáo nhận xét tự động ===== */
+.wscore { display: grid; gap: 0.5rem; background: linear-gradient(135deg, var(--primary-soft), var(--surface)); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 0.75rem 0; }
+.wscore-main { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.wscore-num { font-size: 2.8rem; font-weight: 800; line-height: 1; color: var(--primary); }
+.wscore-num span { font-size: 1.1rem; color: var(--muted); font-weight: 600; }
+.wcrits { margin: 1rem 0; }
+.wcrit { margin-bottom: 0.9rem; }
+.wcrit ul { margin: 0.3rem 0 0; }
+.wannot { margin: 1rem 0; }
+.textbox.annotated { line-height: 1.9; }
+.iss { background: transparent; padding: 0 1px; border-bottom: 3px solid; border-radius: 0; text-decoration: none; color: inherit; }
+.iss sup { font-size: 0.7em; font-weight: 800; margin-left: 1px; padding: 0 3px; border-radius: 6px; background: var(--surface); border: 1px solid currentColor; }
+.iss-gram { border-bottom-color: var(--danger); } .iss-gram sup { color: var(--danger); }
+.iss-spell { border-bottom-color: var(--c5); border-bottom-style: dotted; } .iss-spell sup { color: var(--c5); }
+.iss-punct { border-bottom-color: var(--c3); border-bottom-style: dashed; } .iss-punct sup { color: var(--warn); }
+.iss-vocab { border-bottom-color: var(--c1); border-bottom-style: double; } .iss-vocab sup { color: var(--primary); }
+.iss-register { border-bottom-color: var(--c4); border-bottom-style: wavy; } .iss-register sup { color: var(--muted); }
+.issue-list { padding-left: 1.4rem; }
+.issue-list li { margin-bottom: 0.5rem; }
+.issue-list code { background: var(--surface-2); border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.92em; }
+.issue-list code.fix { background: var(--good-soft); color: var(--good); }
+.chip.cat-gram { background: var(--danger-soft); color: var(--danger); }
+.chip.cat-spell { background: var(--surface-2); color: var(--c5); }
+.chip.cat-punct { background: var(--warn-soft); color: var(--warn); }
+.chip.cat-vocab { background: var(--primary-soft); color: var(--primary); }
+.chip.cat-register { background: var(--surface-2); color: var(--muted); }
+.teacher { margin-top: 1rem; }
+.teacher-form { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.teacher details > summary { cursor: pointer; font-weight: 700; margin: 0.5rem 0; }

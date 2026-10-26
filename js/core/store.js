@@ -33,6 +33,7 @@
     mockRun: () => null,
     game: () => ({ xp: 0, badges: {}, flags: {} }),
     drafts: () => ({}), // bản nháp Writing
+    wlog: () => [], // nhật ký các lần chấm Writing (điểm, lỗi, điểm giáo viên)
   };
 
   let available = false;

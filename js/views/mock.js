@@ -6,7 +6,8 @@
   const U = A.util;
   const D = () => globalThis.AptisData;
 
-  // Hệ số hiệu chỉnh cho kỹ năng tự chấm (người học thường chấm cao hơn thực tế)
+  // Speaking vẫn do người học tự chấm → nhân hệ số hiệu chỉnh (người học thường chấm cao hơn thực tế).
+  // Writing do bộ chấm tự động theo luật → không nhân hệ số (đã có trần B1 khi thiếu điều kiện B2).
   const SELF_FACTOR = 0.9;
 
   const CONFIG = {
@@ -30,7 +31,7 @@
     gv: 'Chọn đáp án đúng cho từng câu. Thi thật: 50 câu (25 ngữ pháp + 25 từ vựng) trong 25 phút.',
     reading: 'Bốn dạng bài liên tiếp. Không có phản hồi từng câu; hết giờ hệ thống tự nộp.',
     listening: 'Mỗi bài nghe tối đa 2 lần. Hết giờ hệ thống tự nộp phần đang làm.',
-    writing: 'Viết từng task, nộp rồi so với bài mẫu và TỰ CHẤM nghiêm khắc (điểm Writing là điểm tự chấm, đã hiệu chỉnh ×0,9).',
+    writing: 'Viết từng task rồi nộp: ứng dụng chấm tự động theo luật (điểm Writing là ước tính tự động, không phải điểm giám khảo) và cho nhận xét.',
     speaking: 'Nói to thành tiếng từng phần theo bấm giờ rồi tự chấm (điểm Speaking là điểm tự chấm, đã hiệu chỉnh ×0,9).',
   };
 
@@ -179,7 +180,7 @@
   function scoreOf(id, r) {
     if (id === 'writing' || id === 'speaking') {
       const sum = U.sum(r.ratings || []);
-      return Math.min(50, (sum / (r.n * 5)) * 50 * SELF_FACTOR);
+      return Math.min(50, (sum / (r.n * 5)) * 50 * (id === 'speaking' ? SELF_FACTOR : 1));
     }
     return r.t ? (r.c / r.t) * 50 : 0;
   }
@@ -347,8 +348,8 @@
             { title: 'Điểm từng kỹ năng' },
             sk.map((s) => {
               const v = m.scores[s.id];
-              const self = s.id === 'writing' || s.id === 'speaking';
-              return h('div', { class: 'goal' }, h('div', { class: 'goal-head' }, h('span', null, `${s.icon} ${s.name}`, self && h('span', { class: 'muted small' }, ' (tự chấm)')), h('span', null, h('strong', null, `${v}/50`), ' ', ui.Chip(m.cefr[s.id], v >= A.scoring.B2_MIN ? 'good' : 'warn'))), ui.Progress({ value: (v / 50) * 100, tone: v >= A.scoring.B2_MIN ? 'good' : 'primary', thin: true, label: s.name }));
+              const tag = s.id === 'speaking' ? ' (tự chấm)' : s.id === 'writing' ? ' (ước tính tự động)' : '';
+              return h('div', { class: 'goal' }, h('div', { class: 'goal-head' }, h('span', null, `${s.icon} ${s.name}`, tag && h('span', { class: 'muted small' }, tag)), h('span', null, h('strong', null, `${v}/50`), ' ', ui.Chip(m.cefr[s.id], v >= A.scoring.B2_MIN ? 'good' : 'warn'))), ui.Progress({ value: (v / 50) * 100, tone: v >= A.scoring.B2_MIN ? 'good' : 'primary', thin: true, label: s.name }));
             }),
           ),
           ui.Card({ title: 'Hồ sơ kỹ năng' }, ui.charts.radar({ labels: sk.map((s) => s.short), series: [{ name: 'Mock này', values: sk.map((s) => m.scores[s.id] / 50), tone: 1 }, ...(prev ? [{ name: 'Mock trước', values: sk.map((s) => prev.scores[s.id] / 50), tone: 3 }] : [])], target: A.scoring.B2_MIN / 50, title: 'Radar kỹ năng' })),
@@ -361,7 +362,7 @@
             return h('div', { class: 'improve' }, h('h3', null, `${s.icon} ${s.name} — ${m.scores[id]}/50`), h('ul', null, A.scoring.suggestions(id).map((x) => h('li', null, x))), ui.Button({ label: 'Luyện ' + A.labels.modules[mod].name, kind: 'primary', size: 'sm', href: A.labels.modules[mod].route }));
           }),
         ),
-        ui.Callout('info', `Ghi chú phương pháp: Reading, Listening và G&V chấm tự động; Writing và Speaking là điểm tự chấm đã nhân ${SELF_FACTOR}. Xác suất = 0,6 × trung bình + 0,4 × giá trị thấp nhất của xác suất từng kỹ năng (sai số đo ${CONFIG[m.mode].sigma} điểm${m.mode === 'mini' ? ' — Mini Mock ít câu nên độ tin cậy thấp hơn' : ''}). Đây là ước lượng, không phải kết quả chính thức.`),
+        ui.Callout('info', `Ghi chú phương pháp: Reading, Listening và G&V chấm theo đáp án; Writing do bộ luật tự động ước tính (bài ngắn thì độ tin cậy thấp); Speaking là điểm tự chấm đã nhân ${SELF_FACTOR}. Xác suất = 0,6 × trung bình + 0,4 × giá trị thấp nhất của xác suất từng kỹ năng (sai số đo ${CONFIG[m.mode].sigma} điểm${m.mode === 'mini' ? ' — Mini Mock ít câu nên độ tin cậy thấp hơn' : ''}). Đây là ước lượng, không phải kết quả chính thức.`),
         h('div', { class: 'quiz-actions' }, ui.Button({ label: 'Làm Mock khác', kind: 'accent', href: '#/mock' }), ui.Button({ label: 'Xem phân tích', kind: 'secondary', href: '#/analytics' }), ui.Button({ label: 'Về Dashboard', kind: 'ghost', href: '#/' })),
       );
       return { title: 'Kết quả Mock', module: 'mock', node: root };
