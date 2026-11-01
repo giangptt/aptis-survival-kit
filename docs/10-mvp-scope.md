@@ -11,7 +11,7 @@ Do đó MVP = đường đi hẹp nhưng trọn vẹn: **biết điểm xuất p
 | Từ vựng (flashcard + quiz + SRS) | Giá trị học tập lớn nhất trên mỗi phút |
 | Ngữ pháp (quiz B1/B2 + giải thích) | Nền cho G&V và Writing |
 | Reading (4 dạng) + Listening (TTS) | Hai kỹ năng chấm tự động được |
-| Writing + Speaking với bài mẫu và tự chấm | Không thể bỏ nếu mục tiêu là B2 toàn diện |
+| Writing (nhận xét + điểm ước tính) + Speaking (bài mẫu, tự chấm) | Không thể bỏ nếu mục tiêu là B2 toàn diện |
 | Mock Mini + CEFR + xác suất B2 | Trả lời câu hỏi "sẵn sàng chưa?" |
 | LocalStorage + sao lưu JSON | Không tài khoản mà không mất dữ liệu |
 
@@ -25,7 +25,8 @@ Do đó MVP = đường đi hẹp nhưng trọn vẹn: **biết điểm xuất p
 | Speaking 5 phần | 5 phần luyện | Đề Aptis General thật có 4 phần; Part 4/5 của app tách từ Part 4 thật (đã ghi rõ ở trang Aptis) |
 | Speaking "Describe photo / Compare photos" | Mô tả ảnh **bằng chữ + emoji** | Không kèm ảnh thật (bản quyền, dung lượng) |
 | Listening "Replay, Transcript, Keywords, Traps" | Đủ, nhưng audio là **TTS** | Không có bản ghi người thật |
-| Writing/Speaking có điểm | **Tự chấm** có tiêu chí, nhân 0,9 | Không có chấm tự động thật |
+| Writing có điểm | **Bộ luật offline** (không AI): điểm /50 + khoảng tin cậy + nhận xét | Không hiểu nội dung, chưa hiệu chỉnh bằng bài giáo viên chấm; có đường dẫn giáo viên nhập tay ([12](12-writing-assessment.md)) |
+| Speaking có điểm | **Tự chấm** có tiêu chí, nhân 0,9 | Không có chấm tự động |
 | Mock "Probability of passing B2" | Có, theo mô hình ước lượng | Chưa hiệu chỉnh bằng dữ liệu thật |
 | Calendar học tập | Lịch 30 ngày theo lộ trình | Không phải lịch tháng tuỳ ý |
 | Analytics "Study hours" | Giờ học chủ động 14 ngày | Đo theo thao tác, không phải thời gian mở tab |

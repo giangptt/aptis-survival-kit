@@ -280,37 +280,39 @@
   };
 
   /* ================= Writing ================= */
-  const CONNECTORS = ['however', 'although', 'even though', 'because of', 'therefore', 'moreover', 'furthermore', 'in addition', 'for example', 'for instance', 'as a result', 'on the other hand', 'firstly', 'secondly', 'finally', 'unfortunately', 'besides', 'whereas', 'despite', 'in conclusion', 'as well as', 'otherwise', 'apart from', 'in spite of', 'what is more', 'that is why', 'so that', 'unless', 'while', 'in my opinion', 'to be honest', 'as soon as'];
-  const connectorsIn = (t) => CONNECTORS.filter((c) => new RegExp('\\b' + c + '\\b', 'i').test(t));
+  const f1 = (x) => (Math.round(x * 10) / 10).toFixed(1);
+  const CAT_CLASS = { gram: 'iss-gram', spell: 'iss-spell', punct: 'iss-punct', vocab: 'iss-vocab', register: 'iss-register' };
 
-  /** Kiểm tra tự động bằng luật đơn giản (không phải chấm điểm thật) */
-  ui.autoCheckWriting = (task, text, part) => {
-    const n = U.countWords(text);
-    const out = [];
-    const inRange = n >= part.min && n <= part.max;
-    out.push({ ok: inRange, label: `Độ dài ${n} từ (yêu cầu ${part.min}–${part.max})`, tip: n < part.min ? `Thiếu ${part.min - n} từ — thêm một lý do hoặc ví dụ.` : n > part.max ? `Thừa ${n - part.max} từ — lược bớt chi tiết phụ.` : '' });
-    if (task >= 3) {
-      out.push({ ok: /^\s*(dear|hi|hello|hey)\b/i.test(text), label: 'Có lời chào đầu thư', tip: 'Bắt đầu bằng “Dear …,” (trang trọng) hoặc “Hi …,” (thân mật).' });
-      out.push({ ok: /(regards|sincerely|best wishes|cheers|yours|see you|speak soon|take care|all the best|looking forward)/i.test(text), label: 'Có lời kết thư', tip: 'Kết bằng “Kind regards,” / “Yours sincerely,” hoặc “Cheers,” / “Take care,”.' });
-    }
-    if (task >= 2 && part.max > 25) {
-      const need = task === 4 ? 3 : task === 3 ? 2 : 1;
-      const used = connectorsIn(text);
-      out.push({ ok: used.length >= need, label: `Từ nối B2 dùng ${used.length}/${need} (${used.slice(0, 4).join(', ') || 'chưa có'})`, tip: 'Thêm however, although, as a result, for example…' });
-    }
-    if (task === 4) {
-      const sentences = (text.match(/[.!?](\s|$)/g) || []).length;
-      out.push({ ok: sentences >= 6, label: `Số câu: ${sentences} (nên ≥ 6)`, tip: 'Chia 3–4 đoạn ngắn: mở đầu – ý chính – đề nghị – kết.' });
-    }
-    if (part.max > 25) {
-      out.push({ ok: !/(^|[\s"(])i(\s|')/.test(text), label: 'Viết hoa chữ “I”', tip: 'Đại từ “I” luôn viết hoa.' });
-      const weak = (text.match(/\b(very|really|good|nice|thing|things|a lot of)\b/gi) || []).length;
-      out.push({ ok: weak <= 2, label: `Từ chung chung (very, good, nice, thing…): ${weak}`, tip: 'Thay bằng từ cụ thể hơn: extremely, excellent, delightful…' });
-    }
-    return out;
-  };
+  /** Đánh số lỗi ngay trong bài: văn bản + <mark>lỗi<sup>n</sup></mark>; trả về { nodes, list } */
+  function annotate(text, issues) {
+    const sorted = issues.slice().sort((a, b) => a.start - b.start);
+    const used = [];
+    sorted.forEach((it) => {
+      const last = used[used.length - 1];
+      if (!last || it.start >= last.end) used.push(it);
+    });
+    const nodes = [];
+    let pos = 0;
+    used.forEach((it, k) => {
+      if (it.start > pos) nodes.push(text.slice(pos, it.start));
+      nodes.push(h('mark', { class: ['iss', CAT_CLASS[it.cat] || 'iss-gram'], id: `iss-${it._n || k + 1}` }, text.slice(it.start, it.end), h('sup', { 'aria-hidden': 'true' }, String(k + 1))));
+      it._n = k + 1;
+      pos = it.end;
+    });
+    if (pos < text.length) nodes.push(text.slice(pos));
+    return { nodes, list: used };
+  }
 
-  const lengthScore = (n, p) => (n >= p.min && n <= p.max ? 5 : n >= p.min * 0.8 && n <= p.max * 1.2 ? 3 : n > 0 ? 1 : 0);
+  function scoreBar(label, en, c, help) {
+    return h(
+      'div',
+      { class: 'wcrit' },
+      h('div', { class: 'goal-head' }, h('span', null, h('strong', null, label), h('span', { class: 'muted small' }, ' · ' + en)), h('span', null, h('strong', null, f1(c.score) + '/5'), ' ', ui.Chip(c.band, c.score >= 3.8 ? 'good' : 'warn'))),
+      ui.Progress({ value: (c.score / 5) * 100, thin: true, tone: c.score >= 3.8 ? 'good' : 'primary', label }),
+      help && h('p', { class: 'muted small' }, help),
+      c.notes && c.notes.length ? h('ul', { class: 'small' }, c.notes.map((n) => h('li', null, n))) : null,
+    );
+  }
 
   ui.WritingTask = (ex, { mode = 'practice', onFinish, extraActions } = {}) => {
     const exam = mode === 'exam';
@@ -320,6 +322,9 @@
     const texts = ex.parts.map((_, i) => saved[i] || '');
     const boxes = [];
     let submitted = false;
+    let delivered = false; // onFinish chỉ gọi một lần
+    let entry = null; // dòng nhật ký (wlog)
+    let lastReport = null;
     const t0 = Date.now();
     let saveH = null;
     const saveDraft = () => {
@@ -332,12 +337,11 @@
     };
 
     const write = () => {
+      submitted = false;
       ui.clear(root);
       root.append(h('div', { class: 'task-context' }, h('h3', null, ex.title), h('p', null, ui.rich(ex.context))));
       if (!exam) {
-        root.append(
-          ui.Accordion({ title: '💡 Mẹo & cụm B2 hữu ích (mở nếu cần)' }, h('ul', null, ex.tips.map((t) => h('li', null, ui.rich(t)))), h('p', null, ex.phrases.map((p) => h('span', { class: 'chip chip-primary' }, p)))),
-        );
+        root.append(ui.Accordion({ title: '💡 Mẹo & cụm B2 hữu ích (mở nếu cần)' }, h('ul', null, ex.tips.map((t) => h('li', null, ui.rich(t)))), h('p', null, ex.phrases.map((p) => h('span', { class: 'chip chip-primary' }, p)))));
       }
       boxes.length = 0;
       ex.parts.forEach((p, i) => {
@@ -346,66 +350,162 @@
         root.append(h('div', { class: 'wpart' }, ex.parts.length > 1 && h('h4', null, `Phần ${i + 1}/${ex.parts.length}`), h('p', { class: 'wprompt' }, ui.rich(p.prompt)), !exam && p.hint && h('p', { class: 'muted small' }, 'Gợi ý: ' + p.hint), box));
       });
       root.append(
-        h('div', { class: 'quiz-actions' }, h('button', { type: 'button', class: 'btn btn-accent', onClick: submit }, 'Nộp & so sánh với bài mẫu')),
-        !exam && h('p', { class: 'muted small' }, 'Bản nháp tự lưu trong trình duyệt. Bài mẫu chỉ hiện sau khi bạn nộp để tránh chép.'),
+        h('div', { class: 'quiz-actions' }, h('button', { type: 'button', class: 'btn btn-accent', onClick: submit }, entry ? 'Chấm lại bài đã sửa' : 'Nộp & xem nhận xét')),
+        !exam && h('p', { class: 'muted small' }, 'Bản nháp tự lưu trong trình duyệt. Nhận xét được tạo ngay trên máy bạn bằng các luật ngôn ngữ — không gửi bài đi đâu.'),
       );
     };
 
     function submit() {
       const finalTexts = boxes.map((b) => b.get());
-      if (finalTexts.every((t) => !t.trim())) return ui.toast('Hãy viết ít nhất một phần trước khi nộp.', { kind: 'warn' });
+      if (!exam && finalTexts.every((t) => !t.trim())) return ui.toast('Hãy viết ít nhất một phần trước khi nộp.', { kind: 'warn' });
       submitted = true;
+      finalTexts.forEach((t, i) => (texts[i] = t));
+      const report = A.writingAnalyzer.analyze({ task: ex.task, parts: ex.parts.map((p, i) => ({ prompt: p.prompt, min: p.min, max: p.max, text: finalTexts[i] })), context: ex.context });
+      lastReport = report;
+      const seconds = Math.round((Date.now() - t0) / 1000);
+      let delta = null;
+      if (entry) {
+        delta = report.score50 - entry.score50;
+        entry = A.wlog.revise(entry.id, { ex: ex.id, task: ex.task, title: ex.title, texts: finalTexts, report, seconds: 0 });
+      } else {
+        entry = A.wlog.add({ ex: ex.id, task: ex.task, title: ex.title, texts: finalTexts, report, seconds });
+        delete drafts[ex.id];
+        A.store.save('drafts');
+      }
+      const res = { rating: report.rating5, score50: report.score50, band: report.band, words: report.parts.map((p) => p.words), seconds, report, logId: entry.id };
+      root.result = res;
+      if (!exam && !delivered) {
+        delivered = true;
+        onFinish && onFinish(res);
+      }
+      renderReport(report, delta, res);
+      globalThis.scrollTo(0, 0);
+    }
+
+    function renderReport(report, delta, res) {
       ui.clear(root);
-      root.append(h('div', { class: 'task-context' }, h('h3', null, ex.title), h('p', { class: 'muted' }, 'So sánh bài của bạn với bài mẫu B2 và kiểm tra tự động. Sau đó tự chấm điểm thật nghiêm khắc.')));
-      const lens = [];
-      ex.parts.forEach((p, i) => {
-        const checks = ui.autoCheckWriting(ex.task, finalTexts[i], p);
-        lens.push(lengthScore(U.countWords(finalTexts[i]), p));
-        root.append(
+      const probB2 = report.score50 >= 38;
+      root.append(
+        h('div', { class: 'task-context' }, h('h3', null, ex.title), h('p', { class: 'muted' }, 'Nhận xét tự động (offline, theo luật) — thử nghiệm để định hướng, không thay giáo viên.')),
+        h(
+          'div',
+          { class: 'wscore', role: 'group', 'aria-label': 'Điểm ước tính' },
+          h('div', { class: 'wscore-main' }, h('div', { class: 'wscore-num' }, f1(report.score50), h('span', null, '/50')), h('div', null, ui.Chip('Ước tính ' + report.bandRange, probB2 ? 'good' : 'primary'), ' ', ui.Chip(`khoảng ${f1(report.range[0])}–${f1(report.range[1])}`, 'neutral'), ' ', ui.Chip('độ tin cậy: ' + { low: 'thấp (bài ngắn)', medium: 'vừa', high: 'khá' }[report.confidence], report.confidence === 'low' ? 'warn' : 'neutral'), delta != null && ' ', delta != null && ui.Chip(`${delta >= 0 ? '+' : ''}${f1(delta)} so với lần trước`, delta > 0 ? 'good' : delta < 0 ? 'warn' : 'neutral'))),
+          h('p', null, report.summary),
+        ),
+        ui.Callout('info', h('strong', null, 'Cách đọc điểm này: '), 'điểm do bộ luật tự động ước tính độ dài, bố cục, từ nối, độ phong phú ngữ pháp/từ vựng và các lỗi điển hình. Nó ', h('strong', null, 'không hiểu nội dung'), ' và chỉ bắt được các lỗi nằm trong danh sách luật. Khi cần điểm đáng tin hơn, hãy nhờ giáo viên chấm (xem mục bên dưới).'),
+      );
+
+      // tiêu chí
+      const crit = A.writingAnalyzer.CRITERIA;
+      root.append(h('div', { class: 'wcrits' }, h('h4', null, 'Bốn tiêu chí (0–5)'), crit.map((c) => scoreBar(c.name, c.en, report.criteria[c.id], c.help))));
+
+      // điều đang giữ điểm dưới B2
+      if (report.bandNotes.length) root.append(ui.Callout('warn', h('strong', null, 'Điều đang giữ điểm của bạn: '), h('ul', null, report.bandNotes.map((n) => h('li', null, n)))));
+
+      // việc nên sửa trước + điểm mạnh
+      root.append(
+        h(
+          'div',
+          { class: 'grid grid-2' },
+          ui.Card({ title: 'Nên sửa trước' }, report.priorities.length ? h('ol', null, report.priorities.map((p) => h('li', null, h('strong', null, p.title), h('br'), h('span', { class: 'small muted' }, p.detail), p.topic && [' ', h('a', { class: 'small', href: '#/grammar/' + p.topic }, 'Ôn ' + A.writingAnalyzer.TOPIC_NAME[p.topic] + ' →')]))) : h('p', { class: 'muted' }, 'Không có lỗi nổi bật theo bộ luật. Hãy so sánh với bài mẫu để nâng cấp cách diễn đạt.')),
+          ui.Card({ title: 'Điểm mạnh' }, report.strengths.length ? h('ul', null, report.strengths.map((x) => h('li', null, x))) : h('p', { class: 'muted' }, 'Chưa có điểm mạnh rõ ràng theo bộ luật — hãy xem bài mẫu để lấy ý.')),
+        ),
+      );
+
+      // bài viết có đánh dấu lỗi
+      const annot = h('div', { class: 'wannot' }, h('h4', null, `Bài của bạn — ${report.issues.length} chỗ cần xem lại`));
+      report.parts.forEach((p, i) => {
+        const a = annotate(p.text || '', p.issues);
+        annot.append(
           h(
             'div',
             { class: 'wcompare' },
-            ex.parts.length > 1 && h('h4', null, `Phần ${i + 1}`),
-            h('p', { class: 'wprompt' }, ui.rich(p.prompt)),
-            h('div', { class: 'cols' }, h('div', null, h('h5', null, 'Bài của bạn'), h('div', { class: 'textbox' }, finalTexts[i] || '(trống)')), h('div', null, h('h5', null, 'Bài mẫu B2'), h('div', { class: 'textbox sample' }, p.sample))),
-            h('ul', { class: 'checks' }, checks.map((c) => h('li', { class: c.ok ? 'ok' : 'bad' }, h('span', { 'aria-hidden': 'true' }, c.ok ? '✓ ' : '✗ '), c.label, !c.ok && c.tip ? h('span', { class: 'muted small' }, ' — ' + c.tip) : null))),
+            ex.parts.length > 1 && h('h5', null, `Phần ${i + 1}: ${p.words} từ`),
+            h('div', { class: 'textbox annotated', lang: 'en' }, p.text ? a.nodes : '(trống)'),
+            a.list.length
+              ? h('ol', { class: 'issue-list' }, a.list.map((it, k) => h('li', { value: k + 1 }, h('span', { class: ['chip', 'cat-' + it.cat] }, A.writingAnalyzer.CAT_NAME[it.cat]), ' ', h('code', null, it.quote), it.fix && it.fix !== it.quote ? [' → ', h('code', { class: 'fix' }, it.fix)] : null, h('div', { class: 'small muted' }, it.message))))
+              : h('p', { class: 'good small' }, '✓ Không phát hiện lỗi trong phần này (theo bộ luật).'),
+            ex.parts.length > 1 && p.notes.length ? h('ul', { class: 'small' }, p.notes.map((n) => h('li', null, n))) : null,
           ),
         );
       });
-      const lenAvg = U.avg(lens);
+      root.append(exam ? ui.Accordion({ title: `Xem lỗi được đánh dấu (${report.issues.length})` }, annot) : annot);
+
+      // bài mẫu
       root.append(
-        ui.SelfRating({
-          criteria: [
-            { id: 'task', label: 'Hoàn thành yêu cầu & đúng văn phong', help: '5 = trả lời đủ mọi ý, giọng điệu phù hợp (thân mật/trang trọng).' },
-            { id: 'grammar', label: 'Ngữ pháp & chính tả', help: '5 = hầu như không lỗi; 3 = vài lỗi nhưng vẫn rõ nghĩa.' },
-            { id: 'vocab', label: 'Từ vựng đa dạng, chính xác', help: '5 = dùng nhiều cụm B2; 3 = dùng từ cơ bản lặp lại.' },
-            { id: 'cohesion', label: 'Bố cục & từ nối', help: '5 = chào – ý chính – kết có từ nối; 3 = thiếu từ nối.' },
-          ],
-          onSubmit: (avg4) => {
-            const rating = (avg4 * 4 + lenAvg) / 5;
-            drafts[ex.id] && delete drafts[ex.id];
-            A.store.save('drafts');
-            const words = finalTexts.map((t) => U.countWords(t));
-            const res = { rating, words, seconds: Math.round((Date.now() - t0) / 1000), lengthScore: lenAvg };
-            onFinish && onFinish(res);
-            root.result = res;
-            if (!exam) {
-              ui.clear(root);
-              root.append(
-                h('div', { class: 'quiz-summary' }, h('div', { class: 'big-emoji', 'aria-hidden': 'true' }, '✍️'), h('h2', null, `Tự chấm: ${rating.toFixed(1)}/5`), h('p', { class: 'muted' }, 'Điểm gồm 4 tiêu chí bạn chấm và 1 tiêu chí độ dài tính tự động.'), h('div', { class: 'quiz-actions' }, extraActions && extraActions(res))),
-              );
-            }
-          },
-        }),
+        ui.Accordion(
+          { title: 'Bài mẫu B2 để so sánh', open: !exam },
+          ex.parts.map((p, i) => h('div', { class: 'wcompare' }, ex.parts.length > 1 && h('h5', null, `Phần ${i + 1}`), h('p', { class: 'wprompt small' }, ui.rich(p.prompt)), h('div', { class: 'textbox sample', lang: 'en' }, p.sample))),
+        ),
       );
-      globalThis.scrollTo(0, 0);
+
+      if (!exam) {
+        root.append(teacherSection(res));
+        root.append(h('div', { class: 'quiz-actions' }, h('button', { type: 'button', class: 'btn btn-primary', onClick: write }, '✏️ Sửa lại bài & chấm lại'), extraActions && extraActions(res)));
+        root.append(h('p', { class: 'muted small' }, 'Mẹo: sửa theo mục “Nên sửa trước”, rồi chấm lại để thấy điểm thay đổi.'));
+      } else {
+        root.append(h('div', { class: 'quiz-actions' }, h('button', { type: 'button', class: 'btn btn-accent', onClick: () => !delivered && ((delivered = true), onFinish && onFinish(res)) }, 'Tiếp tục →')));
+      }
     }
+
+    /** Khu vực giáo viên: xuất bài để chấm + nhập điểm giáo viên */
+    function teacherSection(res) {
+      const wrap = h('div', { class: 'card teacher' });
+      const draw = () => {
+        ui.clear(wrap);
+        const e = A.wlog.get(entry.id);
+        wrap.append(h('h3', null, '🧑‍🏫 Giáo viên chấm (tuỳ chọn)'), h('p', { class: 'muted small' }, 'Điểm giáo viên được ưu tiên hơn điểm tự động trong mọi thống kê, và giúp hiệu chỉnh bộ chấm theo thời gian.'));
+        wrap.append(
+          h(
+            'div',
+            { class: 'quiz-actions' },
+            ui.Button({ label: '⬇ Xuất bài cho giáo viên (.md)', kind: 'secondary', size: 'sm', onClick: () => download(`aptis-writing-${ex.id}.md`, A.wlog.exportMarkdown(entry.id), 'text/markdown') }),
+          ),
+        );
+        if (e.teacher) {
+          const diff = e.score50 - e.teacher.score50;
+          wrap.append(
+            h('div', { class: 'callout callout-tip' }, h('strong', null, `Điểm giáo viên: ${f1(e.teacher.score50)}/50`), ` (${A.scoring.cefr(e.teacher.score50)}). Bộ chấm tự động ${diff >= 0 ? 'cao hơn' : 'thấp hơn'} ${f1(Math.abs(diff))} điểm.`, e.teacher.comment && h('p', null, '“' + e.teacher.comment + '”'), ui.Button({ label: 'Xoá điểm giáo viên', kind: 'ghost', size: 'sm', onClick: () => (A.wlog.clearTeacher(entry.id), draw()) })),
+          );
+          return;
+        }
+        const inputs = {};
+        const form = h('form', { class: 'form teacher-form', onSubmit: (ev) => ev.preventDefault() });
+        A.writingAnalyzer.CRITERIA.forEach((c) => {
+          inputs[c.id] = h('input', { type: 'number', min: 0, max: 5, step: 0.5, 'aria-label': `${c.name} (0–5)`, placeholder: '0–5' });
+          form.append(h('label', { class: 'field' }, h('span', null, `${c.name} (0–5)`), inputs[c.id]));
+        });
+        const comment = h('textarea', { rows: 2, 'aria-label': 'Nhận xét của giáo viên', placeholder: 'Nhận xét của giáo viên (tuỳ chọn)' });
+        const msg = h('p', { class: 'bad small', role: 'alert' });
+        wrap.append(
+          h('details', null, h('summary', null, 'Nhập điểm giáo viên đã chấm'), form, h('label', { class: 'field' }, h('span', null, 'Nhận xét'), comment), msg, ui.Button({ label: 'Lưu điểm giáo viên', kind: 'primary', size: 'sm', onClick: () => {
+            const scores = {};
+            for (const c of A.writingAnalyzer.CRITERIA) {
+              const v = inputs[c.id].value;
+              if (v === '' || !(Number(v) >= 0 && Number(v) <= 5)) return (msg.textContent = `Hãy nhập điểm 0–5 cho “${c.name}”.`);
+              scores[c.id] = Number(v);
+            }
+            A.wlog.setTeacher(entry.id, { scores, comment: comment.value });
+            ui.toast('Đã lưu điểm giáo viên.', { kind: 'good', icon: '🧑‍🏫' });
+            draw();
+          } })),
+        );
+      };
+      draw();
+      return wrap;
+    }
+
+    function download(name, content, type) {
+      const a = h('a', { href: URL.createObjectURL(new Blob([content], { type: type + ';charset=utf-8' })), download: name });
+      document.body.append(a);
+      a.click();
+      a.remove();
+    }
+
     write();
     root.finish = () => {
-      if (!submitted) {
-        submit();
-        return null;
-      }
+      if (!submitted) submit();
     };
     root.stop = () => saveH && clearTimeout(saveH);
     return root;

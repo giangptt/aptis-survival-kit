@@ -7,7 +7,7 @@
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "validate": "node tools/validate-data.js",
-    "test": "node tools/validate-data.js && node tests/unit.js",
+    "test": "node tools/validate-data.js && node tests/unit.js && node tests/analyzer.js",
     "test:e2e": "node tests/smoke.js"
   },
   "engines": { "node": ">=18" }

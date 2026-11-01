@@ -76,8 +76,9 @@ const ok = (name, cond, extra = '') => {
     const ta = page.locator('textarea.writing-box');
     const n = await ta.count();
     for (let i = 0; i < n; i++) await ta.nth(i).fill('Hi Sam, thanks for your message. I would love to join you because I really enjoy learning new things. However, I am busy on Friday. See you soon, Anna');
-    await clickBtn(/Nộp & so sánh/);
-    await driveRating();
+    await clickBtn(/Nộp & xem nhận xét/);
+    const next = page.getByRole('button', { name: /^Tiếp tục/ });
+    if (await next.count()) await next.first().click(); // chế độ thi: báo cáo rồi bấm Tiếp tục
   }
   async function driveSpeaking() {
     for (let i = 0; i < 8; i++) {
@@ -188,15 +189,51 @@ const ok = (name, cond, extra = '') => {
   ok('có trình phát + giới hạn lượt', (await page.locator('.player .chip').innerText()).includes('Đã nghe'));
   ok('quiz nghe chạy xong, hiện transcript + traps', (await driveQuiz()) && (await page.locator('text=Common traps').count()) > 0);
 
-  console.log('Writing');
+  console.log('Writing (bộ chấm offline)');
   await go('#/writing/3/w3-1'); await page.waitForSelector('.task-write');
-  await page.locator('textarea.writing-box').fill('Hi Sam, thanks for your message. I would love to join you because I really enjoy walking. However, I am busy on Friday. See you soon, Anna');
+  const bad = "hi jack\nthank you for your email. I can come saturday. I bring food and water. i like hiking very much. see you.\nLan";
+  await page.locator('textarea.writing-box').fill(bad);
   ok('đếm từ hiển thị', (await page.locator('.wc').first().innerText()).includes('từ'));
-  await clickBtn(/Nộp & so sánh/);
-  ok('hiện bài mẫu + kiểm tra tự động', (await has('.textbox.sample')) && (await has('.checks li')));
-  await shot('06-writing-compare');
-  await driveRating();
-  ok('tự chấm xong → tổng kết', await has('.quiz-summary'));
+  await clickBtn(/Nộp & xem nhận xét/);
+  await page.waitForSelector('.wscore');
+  const first = await page.evaluate(() => Aptis.store.get('wlog').slice(-1)[0]);
+  ok('có điểm ước tính /50 + khoảng + độ tin cậy', (await page.locator('.wscore-num').innerText()).includes('/50') && (await page.locator('.wscore').innerText()).includes('khoảng') && (await page.locator('.wscore').innerText()).includes('độ tin cậy'));
+  ok('hiển thị 4 tiêu chí kèm thang 0–5', (await page.locator('.wcrit').count()) === 4);
+  ok('lỗi được đánh số trong bài (mark) và có danh sách giải thích', (await page.locator('.annotated mark.iss').count()) >= 2 && (await page.locator('.issue-list li').count()) >= 2);
+  ok('mục “Nên sửa trước” và “Điểm mạnh”', (await page.locator('text=Nên sửa trước').count()) > 0 && (await page.locator('text=Điểm mạnh').count()) > 0);
+  ok('có lời nhắc đây là ước tính tự động, không thay giáo viên', (await page.locator('text=không hiểu nội dung').count()) > 0 && (await page.locator('text=không thay giáo viên').count()) > 0);
+  ok('bài mẫu B2 nằm trong mục mở rộng', (await page.locator('.accordion .textbox.sample').count()) >= 1);
+  ok('đã ghi nhật ký chấm (wlog) với điểm và lỗi', !!first && first.score50 > 0 && Object.keys(first.issues).length >= 2 && first.texts[0].includes('thank you for your email'));
+  ok('không còn bước tự chấm trong Writing', !(await has('fieldset.rating-row')));
+  ok('A2 bị chấm thấp (< 26)', first.score50 < 26, String(first.score50));
+  await shot('06-writing-report');
+  // sửa lại & chấm lại → điểm tăng, hiển thị chênh lệch
+  await clickBtn(/Sửa lại bài/);
+  await page.waitForSelector('textarea.writing-box');
+  await page.locator('textarea.writing-box').fill("Hi Jack,\n\nThanks for the invitation! I'd love to come, although I haven't been hiking since last spring, so please pick a gentle route. I'll bring sandwiches, fruit and plenty of water. Shall we meet at the station at seven?\n\nSpeak soon,\nLinh");
+  await clickBtn(/Chấm lại bài đã sửa/);
+  await page.waitForSelector('.wscore');
+  const second = await page.evaluate(() => Aptis.store.get('wlog').slice(-1)[0]);
+  ok('sửa lại: cùng một bản ghi, đếm số lần sửa, điểm tăng', (await page.evaluate(() => Aptis.store.get('wlog').length)) === 1 && second.revisions === 1 && second.score50 > first.score50 + 10, `${first.score50} → ${second.score50}`);
+  ok('hiển thị chênh lệch so với lần trước', (await page.locator('.wscore').innerText()).includes('so với lần trước'));
+  // giáo viên: xuất bài + nhập điểm
+  const [dl] = await Promise.all([page.waitForEvent('download'), clickBtn(/Xuất bài cho giáo viên/)]);
+  ok('xuất bài cho giáo viên (.md)', dl.suggestedFilename().endsWith('.md'));
+  await page.locator('.teacher summary').click();
+  const nums = page.locator('.teacher-form input');
+  for (let i = 0; i < 4; i++) await nums.nth(i).fill(['4', '3.5', '4', '3.5'][i]);
+  await page.locator('.teacher textarea').fill('Bài khá tốt, cần thêm từ nối.');
+  await clickBtn(/Lưu điểm giáo viên/);
+  await page.waitForSelector('text=Điểm giáo viên');
+  const teach = await page.evaluate(() => Aptis.store.get('wlog')[0].teacher);
+  ok('lưu điểm giáo viên (0,2·4 + 0,3·3,5 + 0,25·4 + 0,25·3,5 = 3,725 → 37,3)', teach && Math.abs(teach.score50 - 37.3) < 0.2, JSON.stringify(teach && teach.score50));
+  ok('hiển thị độ lệch giữa bộ chấm và giáo viên', (await page.locator('.teacher').innerText()).includes('Bộ chấm tự động'));
+  const sess = await page.evaluate(() => Aptis.store.get('stats').writing);
+  ok('phiên Writing được ghi nhận một lần (không tính lại khi sửa)', sess && sess.n === 1, JSON.stringify(sess && sess.n));
+  await go('#/writing');
+  ok('trang Writing có hồ sơ lỗi và đối chiếu giáo viên', (await page.locator('text=Đối chiếu với giáo viên').count()) > 0 && (await page.locator('text=Điểm các lần gần đây').count()) > 0);
+  await go('#/writing/3');
+  ok('danh sách đề hiển thị điểm bài đã làm', (await page.locator('.card-link .chip', { hasText: '/50' }).count()) >= 1);
   await go('#/writing/1/w1-1'); await page.waitForSelector('.task-write');
   await page.locator('textarea.writing-box').first().fill('Anna');
   await page.waitForTimeout(800);
@@ -246,6 +283,7 @@ const ok = (name, cond, extra = '') => {
   console.log('Phân tích, thành tích, cài đặt');
   await go('#/analytics');
   ok('analytics có biểu đồ SVG + tiêu chí thành công', (await page.locator('svg.chart-svg').count()) >= 3 && (await page.locator('text=Tiêu chí thành công').count()) > 0);
+  ok('analytics có thẻ Writing (tiêu chí + lỗi hay mắc)', (await page.locator('text=Writing: bốn tiêu chí').count()) > 0 && (await page.locator('text=Writing: lỗi hay mắc nhất').count()) > 0);
   await shot('10-analytics');
   await go('#/achievements');
   ok('có huy hiệu đã đạt (First Step)', (await page.locator('.badge.earned').count()) >= 1);

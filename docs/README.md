@@ -15,5 +15,6 @@ Viết cho: chủ sản phẩm và người phát triển tiếp dự án. Mọi
 | 9 | [Roadmap phát triển](09-development-roadmap.md) | Các giai đoạn đã làm và việc tiếp theo |
 | 10 | [Phạm vi MVP](10-mvp-scope.md) | MVP so với v1.0 đã giao, những gì được giản lược |
 | 11 | [Hướng mở rộng](11-future-enhancements.md) | Danh sách cải tiến sau này, có thứ tự ưu tiên |
+| 12 | [Chấm & nhận xét Writing offline](12-writing-assessment.md) | Bộ luật chấm, 4 tiêu chí, điều kiện B2, hiệu chuẩn, giới hạn, giao thức hiệu chỉnh với giáo viên |
 
 Tài liệu liên quan: [Đặc tả định dạng nội dung](../tools/CONTENT_SPEC.md) · [README gốc](../README.md)

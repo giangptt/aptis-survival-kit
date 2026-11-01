@@ -38,7 +38,7 @@
         ),
         ui.Card(
           { title: 'Ứng dụng này khác đề thật ở đâu?' },
-          h('ul', null, ['Listening dùng giọng đọc tổng hợp của trình duyệt (text-to-speech), không phải bản ghi âm người thật — âm thanh sẽ “máy” hơn và không có tạp âm.', 'Writing và Speaking không có giám khảo: bạn so với bài mẫu và TỰ CHẤM. Điểm đã nhân hệ số hiệu chỉnh 0,9.', 'Speaking: ứng dụng tách phần nói của đề thật thành 5 phần luyện (Part 4 = thảo luận ngắn, Part 5 = nói dài 2 phút theo định dạng Part 4 thật).', 'Phần mô tả ảnh dùng mô tả bằng chữ kèm emoji vì ứng dụng không chứa ảnh thật; hãy hình dung cảnh khi nói.', 'Xác suất đạt B2 và ngưỡng CEFR là ước lượng tham khảo.'].map((x) => h('li', null, x))),
+          h('ul', null, ['Listening dùng giọng đọc tổng hợp của trình duyệt (text-to-speech), không phải bản ghi âm người thật — âm thanh sẽ “máy” hơn và không có tạp âm.', 'Writing không có giám khảo: ứng dụng ước tính điểm và nhận xét bằng bộ luật chạy trên máy bạn (độ dài, bố cục, từ nối, ngữ pháp, từ vựng, lỗi điển hình). Nó không hiểu nội dung nên chỉ mang tính định hướng; bạn có thể xuất bài cho giáo viên chấm rồi nhập điểm để đối chiếu. Speaking vẫn là tự chấm (hệ số 0,9).', 'Speaking: ứng dụng tách phần nói của đề thật thành 5 phần luyện (Part 4 = thảo luận ngắn, Part 5 = nói dài 2 phút theo định dạng Part 4 thật).', 'Phần mô tả ảnh dùng mô tả bằng chữ kèm emoji vì ứng dụng không chứa ảnh thật; hãy hình dung cảnh khi nói.', 'Xác suất đạt B2 và ngưỡng CEFR là ước lượng tham khảo.'].map((x) => h('li', null, x))),
         ),
         h('div', { class: 'quiz-actions' }, ui.Button({ label: 'Bắt đầu Diagnostic', kind: 'accent', href: '#/diagnostic' }), ui.Button({ label: 'Xem lộ trình 30 ngày', kind: 'secondary', href: '#/roadmap' })),
       );

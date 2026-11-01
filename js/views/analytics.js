@@ -26,6 +26,20 @@
     ];
   }
 
+  /** Writing: tiêu chí trung bình + lỗi hay mắc (chỉ khi đã có bài được chấm) */
+  function writingCard() {
+    const avg = A.wlog.criteriaAvg(5);
+    if (!avg) return null;
+    const crit = A.writingAnalyzer.CRITERIA;
+    const prof = A.wlog.errorProfile(12).slice(0, 5);
+    return h(
+      'div',
+      { class: 'grid grid-2' },
+      ui.Card({ title: 'Writing: bốn tiêu chí (5 bài gần nhất)', sub: 'Vòng cam = mức B2 (3,8/5). Ước tính tự động, không phải điểm giám khảo.' }, ui.charts.radar({ labels: crit.map((c) => c.name), series: [{ name: 'Điểm trung bình', values: crit.map((c) => avg[c.id] / 5), tone: 1 }], target: 3.8 / 5, title: 'Radar tiêu chí Writing' })),
+      ui.Card({ title: 'Writing: lỗi hay mắc nhất' }, prof.length ? h('ol', { class: 'issue-list' }, prof.map((r) => h('li', null, h('strong', null, r.label), h('span', { class: 'muted small' }, ` — ${r.count} lần`), r.topic && [' ', h('a', { class: 'small', href: '#/grammar/' + r.topic }, 'Ôn ' + A.writingAnalyzer.TOPIC_NAME[r.topic] + ' →')]))) : h('p', { class: 'good' }, 'Chưa phát hiện lỗi lặp lại.'), ui.Button({ label: 'Luyện Writing', kind: 'primary', size: 'sm', href: '#/writing' })),
+    );
+  }
+
   ui.router.add(
     '/analytics',
     () => {
@@ -92,16 +106,19 @@
         const s = stats[m];
         return [A.labels.modules[m].name, s ? s.n : 0, s && s.t ? `${s.c}/${s.t}` : '—', s && s.t ? Math.round((s.c / s.t) * 100) + '%' : '—', s ? U.fmtMinutes(s.sec || 0) : '—'];
       });
-      ['writing', 'speaking'].forEach((m) => {
-        const refs = Object.values((stats[m] && stats[m].refs) || {});
-        rows.push([A.labels.modules[m].name, refs.reduce((n, r) => n + r.n, 0), '—', refs.length ? 'tự chấm TB ' + U.avg(refs.map((r) => r.rating || 0)).toFixed(1) + '/5' : '—', '—']);
-      });
+      const wl = A.wlog.list();
+      rows.push(['Writing', wl.length, '—', wl.length ? 'ước tính TB ' + U.avg(wl.slice(-6).map((e) => A.wlog.effectiveScore(e))).toFixed(0) + '/50 (6 bài gần nhất)' : '—', '—']);
+      {
+        const refs = Object.values((stats.speaking && stats.speaking.refs) || {});
+        rows.push(['Speaking', refs.reduce((n, r) => n + r.n, 0), '—', refs.length ? 'tự chấm TB ' + U.avg(refs.map((r) => r.rating || 0)).toFixed(1) + '/5' : '—', '—']);
+      }
       const cards = Object.values(A.store.get('srs'));
       root.append(
         h('div', { class: 'grid grid-2' },
           ui.Card({ title: 'Thời gian học theo mô-đun (phút)' }, ui.charts.bars({ data: timeBars, title: 'Phút học theo mô-đun', fmt: (v) => v })),
           ui.Card({ title: 'Từ vựng' }, ui.charts.bars({ data: [{ label: 'Mới', value: A.vocabdb.count() - cards.length, tone: 4 }, { label: 'Đang học', value: cards.filter((c) => c.iv < A.srs.MASTERED_DAYS).length, tone: 1 }, { label: 'Đã thuộc', value: cards.filter((c) => c.iv >= A.srs.MASTERED_DAYS).length, tone: 2 }], title: 'Trạng thái từ vựng', fmt: (v) => v }), h('p', { class: 'muted small' }, `Đến hạn ôn hôm nay: ${cards.filter((c) => A.srs.isDue(c)).length} thẻ.`)),
         ),
+        writingCard(),
         ui.Card({ title: 'Độ chính xác theo mô-đun' }, h('table', { class: 'table' }, h('thead', null, h('tr', null, ['Mô-đun', 'Số phiên', 'Đúng/Tổng', 'Tỉ lệ', 'Thời gian'].map((x) => h('th', { scope: 'col' }, x)))), h('tbody', null, rows.map((r) => h('tr', null, r.map((c) => h('td', null, String(c)))))))),
       );
       return { title: 'Phân tích', module: 'analytics', node: root };

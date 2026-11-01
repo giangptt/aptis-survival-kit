@@ -20,6 +20,8 @@ aptis-b2-survival-kit/
 │  │  ├─ srs.js                Lặp lại ngắt quãng
 │  │  ├─ vocabdb.js            Truy vấn kho từ + sinh câu hỏi quiz tự động
 │  │  ├─ scoring.js            CEFR, xác suất B2, chấm Diagnostic, ước tính điểm
+│  │  ├─ writing-analyzer.js   Bộ chấm & nhận xét Writing offline (59 luật, 4 tiêu chí, điều kiện B2)
+│  │  ├─ writing-log.js        Nhật ký chấm Writing, hồ sơ lỗi, điểm giáo viên, xuất cho giáo viên
 │  │  ├─ plan.js               Dựng nhiệm vụ 30 ngày, tiến độ, kỹ năng yếu
 │  │  ├─ game.js               XP, cấp độ, streak, mục tiêu tuần, 23 huy hiệu, bus sự kiện
 │  │  ├─ session.js            Ghi nhận một phiên luyện tập (điểm vào mọi nơi)
@@ -27,7 +29,7 @@ aptis-b2-survival-kit/
 │  ├─ ui/
 │  │  ├─ h.js                  Dựng DOM, toast, modal, vá Element.append
 │  │  ├─ router.js             Hash router + guard
-│  │  ├─ components.js         Button, Card, Progress, Ring, Countdown, Quiz, AudioPlayer, WritingBox, SelfRating…
+│  │  ├─ components.js         Button, Card, Progress, Ring, Countdown, Quiz, AudioPlayer, WritingBox, SelfRating (Speaking)…
 │  │  ├─ tasks.js              Reading/Listening/Writing/Speaking task + khung nói
 │  │  ├─ widgets.js            TaskList, SkillBars, Calendar
 │  │  └─ charts.js             Biểu đồ SVG: bars, line, radar
@@ -47,6 +49,8 @@ aptis-b2-survival-kit/
 │  └─ validate-data.js         Kiểm tra nội dung
 ├─ tests/
 │  ├─ unit.js                  30 test lõi (Node)
+│  ├─ analyzer.js              152 kiểm tra bộ chấm Writing (Node)
+│  ├─ fixtures/writing-learner.js   Bài người học GIẢ LẬP (do người phát triển viết, chưa phải bài giáo viên chấm)
 │  └─ smoke.js                 E2E trên Chromium (cần playwright-core)
 └─ docs/                       Tài liệu này
 ```

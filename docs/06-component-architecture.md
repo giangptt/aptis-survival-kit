@@ -16,7 +16,7 @@ app.js (Shell)
 │       ├─ Quiz       ◄── dùng bởi Diagnostic, Grammar, Vocab quiz, Reading P1, Listening, Mock G&V
 │       ├─ Tasks:     ReadingTask(sentence|ordering|shortMatch|longMatch) · ListeningTask · WritingTask · SpeakingTask
 │       │     ├─ AudioPlayer + Transcript        (Listening)
-│       │     ├─ WritingBox + SelfRating         (Writing)
+│       │     ├─ WritingBox + báo cáo chấm tự động (Writing; SelfRating chỉ còn ở Speaking)
 │       │     └─ Countdown + RecorderWidget + FrameworkCard (Speaking)
 │       └─ FlashSession (flashcard SRS, trong views/vocab.js)
 ├─ Toasts (aria-live)  ·  Modal / confirm
@@ -45,7 +45,7 @@ Mọi task có chữ ký `Task(…, { mode:'practice'|'exam', onFinish, extraAct
 |---|---|---|
 | `ReadingTask(type, set)` | `{correct,total,pct,seconds,items}` | `ordering` chấm theo vị trí từng câu; `longMatch` không cho dùng trùng tiêu đề (chế độ luyện) |
 | `ListeningTask(item)` | như trên + `plays` | exam: tối đa 2 lượt nghe |
-| `WritingTask(ex)` | `{rating(0–5), words[], seconds, lengthScore}` | rating = (4 tiêu chí tự chấm + 1 tiêu chí độ dài tự động) / 5 |
+| `WritingTask(ex)` | `{rating(0–5), score50, band, words[], seconds, report, logId}` | Gọi `A.writingAnalyzer.analyze`, ghi `A.wlog`; luyện: `onFinish` gọi **một lần** ngay lần chấm đầu (sửa lại không tính phiên mới); thi (`exam`): gọi khi bấm "Tiếp tục". `rating` = điểm /10 của bộ chấm |
 | `SpeakingTask(part,item)` | `{rating(0–5), seconds}` | các bước chuẩn bị/nói có đồng hồ riêng |
 
 ### Các thành phần khác
@@ -54,7 +54,7 @@ Mọi task có chữ ký `Task(…, { mode:'practice'|'exam', onFinish, extraAct
 | `Countdown` | `({seconds,label,autoStart,controls,onEnd,compact})` | Node có `.start/.pause/.reset/.stop/.timer` |
 | `AudioPlayer` | `({script,speakers,maxPlays})` | Phát bằng TTS từng lượt thoại; `.stop()`, `.plays()` |
 | `WritingBox` | `({min,max,value,onChange})` | Đếm từ, đổi màu theo khoảng yêu cầu |
-| `SelfRating` | `({criteria,onSubmit(avg,values)})` | Nhóm radio 1–5, hỗ trợ bàn phím |
+| `SelfRating` | `({criteria,onSubmit(avg,values)})` | Nhóm radio 1–5, hỗ trợ bàn phím; chỉ dùng cho Speaking |
 | `RecorderWidget` | `()` | Ghi/nghe lại; bản ghi chỉ ở bộ nhớ |
 | `TaskList` | `(day,{onChange})` | Checkbox đánh dấu thủ công + nút "Làm ngay" |
 | `FlashSession` | `({words,title,ctx})` | Hàng đợi thẻ, chấm SRS, tổng kết, phím tắt |

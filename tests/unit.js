@@ -13,7 +13,7 @@ vm.createContext(sandbox);
 const load = (f) => vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), sandbox, { filename: f });
 ['js/core/util.js', 'js/core/store.js', 'js/core/labels.js'].forEach(load);
 fs.readdirSync(path.join(root, 'js/data')).filter((f) => f.endsWith('.js')).forEach((f) => load('js/data/' + f));
-['js/core/srs.js', 'js/core/vocabdb.js', 'js/core/scoring.js', 'js/core/plan.js', 'js/core/game.js', 'js/core/session.js'].forEach(load);
+['js/core/srs.js', 'js/core/vocabdb.js', 'js/core/scoring.js', 'js/core/writing-analyzer.js', 'js/core/writing-log.js', 'js/core/plan.js', 'js/core/game.js', 'js/core/session.js'].forEach(load);
 const A = sandbox.Aptis;
 const U = A.util;
 

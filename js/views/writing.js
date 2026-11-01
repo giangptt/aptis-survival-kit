@@ -14,6 +14,44 @@
     4: ['Lời chào trang trọng (Dear Mr/Ms … / Dear Sir or Madam,)', 'Nêu mục đích ngay đoạn 1 (I am writing to…)', '2–3 ý chính, mỗi ý một đoạn có từ nối', 'Giọng trang trọng: không viết tắt, không tiếng lóng', 'Kết thư lịch sự + Yours sincerely/faithfully hoặc Kind regards', '120–150 từ'],
   };
 
+  /** Hồ sơ lỗi hay mắc + xu hướng điểm + độ lệch so với giáo viên */
+  function progressCards() {
+    const log = A.wlog.list();
+    if (!log.length) return ui.Card({ title: 'Nhận xét kiểu giáo viên' }, h('p', { class: 'muted' }, 'Sau mỗi bài, ứng dụng chấm 4 tiêu chí (hoàn thành yêu cầu, ngữ pháp, từ vựng, liên kết), đánh số từng lỗi trong bài và nêu việc nên sửa trước. Bài làm càng nhiều, “hồ sơ lỗi hay mắc” càng chính xác.'), h('p', { class: 'small muted' }, 'Lưu ý: đây là ước tính tự động bằng luật ngôn ngữ chạy trên máy bạn — không dùng AI, không gửi bài đi đâu, và không thay giáo viên.'));
+    const prof = A.wlog.errorProfile(12).slice(0, 6);
+    const trend = A.wlog.trend(12);
+    const cal = A.wlog.calibration();
+    const avg = A.wlog.criteriaAvg(5);
+    const cards = [
+      ui.Card(
+        { title: 'Lỗi bạn hay mắc', sub: `Trong ${Math.min(12, log.length)} lần chấm gần nhất` },
+        prof.length
+          ? h('ol', { class: 'issue-list' }, prof.map((r) => h('li', null, h('strong', null, r.label), h('span', { class: 'muted small' }, ` — ${r.count} lần trong ${r.attempts} bài`), r.topic && [' ', h('a', { class: 'small', href: '#/grammar/' + r.topic }, 'Ôn ' + A.writingAnalyzer.TOPIC_NAME[r.topic] + ' →')])))
+          : h('p', { class: 'good' }, 'Chưa phát hiện lỗi lặp lại — tuyệt!'),
+      ),
+      ui.Card(
+        { title: 'Điểm các lần gần đây', sub: avg ? `Trung bình 5 bài: Hoàn thành ${avg.ta} · Ngữ pháp ${avg.gr} · Từ vựng ${avg.vo} · Liên kết ${avg.co} (thang 5)` : '' },
+        ui.charts.line({ title: 'Điểm Writing theo thời gian', yMin: 0, yMax: 50, refLine: { y: A.scoring.B2_MIN, label: 'B2' }, series: [{ name: 'Điểm /50', tone: 1, points: trend.map((x, i) => ({ x: '#' + (i + 1), y: x.score50 })) }] }),
+      ),
+    ];
+    const out = [h('div', { class: 'grid grid-2' }, cards)];
+    if (cal.n)
+      out.push(
+        ui.Card(
+          { title: 'Đối chiếu với giáo viên', sub: `${cal.n} bài có điểm giáo viên` },
+          h('p', null, `Độ lệch tuyệt đối trung bình: ${cal.mae} điểm (thang 50). Bộ chấm tự động ${cal.bias >= 0 ? 'cao hơn' : 'thấp hơn'} giáo viên trung bình ${Math.abs(cal.bias)} điểm.`),
+          ui.Button({ label: '⬇ Xuất dữ liệu hiệu chỉnh (không kèm bài viết)', kind: 'secondary', size: 'sm', onClick: () => {
+            const a = h('a', { href: URL.createObjectURL(new Blob([JSON.stringify(A.wlog.exportCalibration(), null, 2)], { type: 'application/json' })), download: 'aptis-writing-calibration.json' });
+            document.body.append(a);
+            a.click();
+            a.remove();
+          } }),
+        ),
+      );
+    out.push(h('p', { class: 'muted small' }, 'Nhận xét do bộ luật tự động tạo trên máy bạn (không AI, không gửi bài đi đâu). Đây là ước tính để định hướng, không thay giáo viên hay giám khảo Aptis.'));
+    return h('div', null, out);
+  }
+
   ui.router.add(
     '/writing',
     () => {
@@ -31,10 +69,10 @@
         node: h(
           'div',
           null,
-          ui.PageHeader({ title: 'Writing', sub: 'Thi thật: 4 phần trong 50 phút. Viết → nộp → so với bài mẫu B2 → tự chấm theo tiêu chí.' }),
+          ui.PageHeader({ title: 'Writing', sub: 'Thi thật: 4 phần trong 50 phút. Viết → nộp → nhận xét tự động (điểm, lỗi, việc nên sửa) → sửa lại và chấm lại. Có thể nhờ giáo viên chấm để đối chiếu.' }),
           drafts.length ? ui.Callout('info', `Bạn có ${drafts.length} bản nháp chưa nộp (tự lưu trong trình duyệt).`) : null,
           grid,
-          ui.Card({ title: 'Khung điểm tự đánh giá' }, h('p', { class: 'muted' }, 'Sau mỗi bài bạn chấm 4 tiêu chí (hoàn thành yêu cầu, ngữ pháp, từ vựng, bố cục & từ nối) và hệ thống tự chấm tiêu chí độ dài. Hãy chấm nghiêm khắc: nếu không chắc giữa hai mức, chọn mức thấp.')),
+          progressCards(),
         ),
       };
     },
@@ -61,7 +99,8 @@
             { class: 'grid grid-2' },
             exs(t).map((x, i) => {
               const st = refStat(x.id);
-              return h('a', { class: 'card card-link', href: `#/writing/${t}/${x.id}` }, h('div', { class: 'row-between' }, h('h3', null, `Đề ${i + 1}: ${x.title}`), drafts[x.id] && ui.Chip('có bản nháp', 'warn')), h('p', { class: 'muted small' }, x.context.split('\n')[0].slice(0, 110) + '…'), h('p', null, st ? ui.Chip(`Tự chấm ${(st.rating || 0).toFixed(1)}/5 · ${st.n} lần`, 'good') : ui.Chip('Chưa làm', 'neutral')));
+              const last = A.wlog.forEx(x.id)[0];
+              return h('a', { class: 'card card-link', href: `#/writing/${t}/${x.id}` }, h('div', { class: 'row-between' }, h('h3', null, `Đề ${i + 1}: ${x.title}`), drafts[x.id] && ui.Chip('có bản nháp', 'warn')), h('p', { class: 'muted small' }, x.context.split('\n')[0].slice(0, 110) + '…'), h('p', null, last ? ui.Chip(`${A.wlog.effectiveScore(last)}/50 · ${last.band}${last.teacher ? ' (giáo viên)' : ''}${last.revisions ? ' · đã sửa ' + last.revisions + ' lần' : ''}`, A.wlog.effectiveScore(last) >= 38 ? 'good' : 'primary') : st ? ui.Chip(`${st.n} lần`, 'neutral') : ui.Chip('Chưa làm', 'neutral')));
             }),
           ),
         ),

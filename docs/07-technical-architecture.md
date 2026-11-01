@@ -20,6 +20,7 @@ Ngăn xếp: **HTML + CSS (biến, grid) + JavaScript thuần (ES2020)** · Web 
 │                          widgets · charts                      │
 ├──────────────────────────────────────────────────────────────┤
 │ Miền / lõi (js/core)     plan · srs · vocabdb · scoring ·      │
+│                          writing-analyzer · writing-log ·      │
 │                          game · session · audio(tts,rec,timer) │
 ├──────────────────────────────────────────────────────────────┤
 │ Hạ tầng (js/core)        util · store · labels                 │
@@ -31,7 +32,7 @@ Quy tắc phụ thuộc: tầng trên gọi tầng dưới, **không ngược l�
 
 **Không gian tên:** `globalThis.Aptis` (`util, store, labels, srs, vocabdb, scoring, plan, game, session, tts, recorder, activity, bus, ui`) và `globalThis.AptisData` (nội dung). Mỗi file bọc trong IIFE để tránh trùng tên biến toàn cục giữa các script.
 
-**Thứ tự nạp** (xem `index.html`): util → store → labels → data → srs → vocabdb → scoring → plan → game → session → audio → ui (h, router, charts, components, tasks, widgets) → views → `app.js` (cuối cùng, vì đăng ký route xong mới khởi động router).
+**Thứ tự nạp** (xem `index.html`): util → store → labels → data → srs → vocabdb → scoring → writing-analyzer → writing-log → plan → game → session → audio → ui (h, router, charts, components, tasks, widgets) → views → `app.js` (cuối cùng, vì đăng ký route xong mới khởi động router).
 
 ## 7.3 Luồng dữ liệu
 ```
@@ -66,14 +67,15 @@ Trọng số theo mức câu A2=1, B1=2, B2=3; `pct = Σ điểm đúng có tr�
 
 ### Điểm kỹ năng Mock (0–50)
 - G&V, Reading, Listening: `đúng/tổng × 50`.
-- Writing, Speaking (tự chấm): `trung bình rating(0–5) / 5 × 50 × 0,9`.
+- Writing: điểm /50 của bộ chấm offline (4 tiêu chí + điều kiện B2, xem [12](12-writing-assessment.md)); không nhân hệ số, trần 43,9.
+- Speaking (tự chấm): `trung bình rating(0–5) / 5 × 50 × 0,9`.
 - CEFR theo điểm: `<4 A0 · <16 A1 · <26 A2 · <38 B1 · <44 B2 · ≥44 C` (ước lượng).
 
 ### Xác suất đạt B2
 Mỗi kỹ năng: `p = Φ((điểm − 37,5)/σ)` với σ = 3,5 (Full) hoặc 5 (Mini — ít câu nên bất định hơn). Toàn bài: `P = 0,6 × trung bình(p) + 0,4 × min(p)` — cố ý phạt kỹ năng yếu nhất vì chứng nhận B2 cần đủ các kỹ năng. Ví dụ (5 kỹ năng cùng điểm, Full): 30 → ~2% · 38 → ~56% · 41 → ~84% · 44 → ~97%. Các con số σ, ngưỡng 38 và trọng số 0,6/0,4 là **giả định hiệu chỉnh**, không phải số liệu chính thức; chúng nằm ở `scoring.js` để chỉnh khi có dữ liệu thật.
 
 ### Ước tính điểm hiện tại (Dashboard)
-Ưu tiên: Mock gần nhất → Diagnostic → luyện tập (độ chính xác × 50 × 0,9; Writing/Speaking dùng trung bình tự chấm gần nhất). Khi có Diagnostic + luyện tập: lấy trung bình hai nguồn.
+Ưu tiên: Mock gần nhất → Diagnostic → luyện tập (độ chính xác × 50 × 0,9; Writing dùng trung bình 6 bài gần nhất trong nhật ký, ưu tiên điểm giáo viên; Speaking dùng trung bình tự chấm gần nhất). Khi có Diagnostic + luyện tập: lấy trung bình hai nguồn.
 
 ### Lộ trình — `core/plan.js`
 `tasksFor(d)` = (dữ liệu ngày từ `roadmap.js`) × (thời lượng 30/60/90) × (kỹ năng yếu). Ngày đặc biệt thay nhiệm vụ bằng Diagnostic/Mock (+ ôn từ vựng). Ngày hiện tại = `clamp(ngày dương lịch kể từ startDate + 1, 1, 30)`. Mode 30 phút: từ vựng + 2 kỹ năng luân phiên (đổi một kỹ năng sang kỹ năng yếu vào ngày chẵn).
@@ -97,15 +99,16 @@ Biến CSS cho chủ đề sáng/tối (`:root[data-theme]` + `prefers-color-sch
 |---|---|---|
 | Dữ liệu | `tools/validate-data.js` | Cấu trúc mọi nội dung, trùng từ, vị trí đáp án, độ dài bài mẫu, số bộ đề tối thiểu |
 | Đơn vị | `tests/unit.js` (30 test, Node thuần, `vm`) | util, store, SRS, vocabdb (sinh câu hỏi), scoring, plan (30 ngày × 3 mức), game, session, nhất quán chéo |
-| Đầu-cuối | `tests/smoke.js` (playwright-core + Chromium, 97 kiểm tra) | Onboarding, Diagnostic, 40 route, 30 trang ngày, mọi luồng luyện tập, Mini Mock, lưu & tải lại, mobile không cuộn ngang, tên truy cập, lỗi console |
+| Bộ chấm Writing | `tests/analyzer.js` (152 kiểm tra, Node thuần) | Từng luật (dương/âm tính), 0 báo nhầm trên văn bản tự nhiên và bài mẫu, hiệu chuẩn A2/B1/B2, độ nhạy, độ bền, nhật ký + điểm giáo viên |
+| Đầu-cuối | `tests/smoke.js` (playwright-core + Chromium, 113 kiểm tra) | Onboarding, Diagnostic, 40 route, 30 trang ngày, mọi luồng luyện tập, Mini Mock, lưu & tải lại, mobile không cuộn ngang, tên truy cập, lỗi console |
 
-Kết quả lần chạy cuối: `validate` OK (16 file) · unit 30/30 · e2e 97/97. **Chưa kiểm**: Safari/Firefox, ghi âm thật (cần micro), chất lượng giọng TTS trên từng hệ điều hành, thiết bị cảm ứng thật.
+Kết quả lần chạy cuối: `validate` OK (16 file) · unit 30/30 · bộ chấm Writing 152/152 · e2e 113/113. **Chưa kiểm**: Safari/Firefox, ghi âm thật (cần micro), chất lượng giọng TTS trên từng hệ điều hành, thiết bị cảm ứng thật.
 
 ## 7.9 Bảo mật & riêng tư
 Không có mạng, không có tài khoản, không có bí mật. Nội dung do người dùng nhập (tên, bài viết) chỉ đi qua `textContent`/`value`, không `innerHTML`. File sao lưu chứa toàn bộ tiến độ và bản nháp Writing — hãy coi là dữ liệu cá nhân. Bản ghi âm không rời bộ nhớ trình duyệt.
 
 ## 7.10 Hiệu năng và giới hạn
-- Tải: ~0,9 MB (mã 263 KB, dữ liệu 608 KB, CSS 37 KB). Dữ liệu LocalStorage thường < 100 KB sau 30 ngày.
+- Tải: ~1,0 MB (mã 365 KB, dữ liệu 608 KB, CSS 40 KB). Dữ liệu LocalStorage thường < 100 KB sau 30 ngày.
 - Vẽ: các view nhỏ, vẽ lại cục bộ; danh sách từ vựng phân trang 40 mục.
 - Giới hạn LocalStorage ~5 MB/miền: dư dả; `drafts` bị xoá khi nộp.
 - Điểm mở rộng: thêm view = thêm file trong `js/views/` + một thẻ `<script>`; thêm nội dung = sửa `js/data/*.js` rồi `npm run validate`.

@@ -126,6 +126,10 @@
         } else if (sk.id === 'reading' || sk.id === 'listening') {
           const a = acc(sk.id);
           if (a != null) prac = a * 50 * 0.9;
+        } else if (sk.id === 'writing' && A.wlog && store.get('wlog').length) {
+          // Writing: điểm bộ chấm tự động (hoặc điểm giáo viên nếu đã nhập) của 6 lần gần nhất
+          const w = store.get('wlog').slice(-6);
+          prac = U.avg(w.map((e) => A.wlog.effectiveScore(e)));
         } else {
           const refs = Object.values((stats[sk.id] && stats[sk.id].refs) || {}).filter((r) => typeof r.rating === 'number');
           if (refs.length) prac = U.avg(refs.slice(-6).map((r) => r.rating)) * 10 * 0.9;

@@ -17,6 +17,7 @@ Ngày dùng khoá `YYYY-MM-DD` theo **giờ địa phương** (`util.dateKey`).
 | `mockRun` | object \| null | Mock đang làm dở |
 | `game` | object | XP, huy hiệu, cờ |
 | `drafts` | object | Bản nháp Writing |
+| `wlog` | array | Nhật ký chấm Writing (điểm, lỗi, điểm giáo viên) |
 
 ## 4.1 Chi tiết
 
@@ -111,6 +112,21 @@ Cấp độ tính từ XP: `level = floor(sqrt(xp/60)) + 1`. Streak **không lư
 ```jsonc
 { "w3-1": { "texts": ["Hi Sam, …"], "at": 1761200000000 } }   // xoá khi nộp xong
 ```
+
+### `wlog`
+```jsonc
+[ { "id": "…", "ex": "w3-1", "task": 3, "title": "Weekend hiking invitation", "at": 1761200000000,
+    "first50": 21.1,            // điểm lần chấm đầu (để thấy tiến bộ khi sửa lại)
+    "score50": 43.9, "prev50": 21.1, "revisions": 1,
+    "band": "B2", "range": [38.9, 48.9], "confidence": "low",   // low | medium | high theo độ dài bài
+    "criteria": { "ta": 4.6, "gr": 4.0, "vo": 4.5, "co": 4.9 }, // thang 0–5
+    "words": 43, "seconds": 310,
+    "issues": { "look-forward": 1, "lower-start": 2 },          // số lỗi theo luật
+    "texts": ["Hi Jack, …"],                                    // chỉ giữ cho 40 bài gần nhất
+    "teacher": { "at": 1761200999999, "scores": {"ta":4,"gr":3.5,"vo":4,"co":3.5}, "score50": 37.3, "comment": "…" } // hoặc null
+    , "v": 1 } ]
+```
+Tối đa 80 phần tử. Điểm hiệu lực = `teacher.score50` nếu có, ngược lại `score50`. Sửa lại bài xoá điểm giáo viên cũ. Chi tiết chấm: [12](12-writing-assessment.md).
 
 ## 4.2 Sao lưu/khôi phục
 `store.exportAll()` → `{ app: "aptis-b2-survival-kit", version: 1, exportedAt, data: { <mọi khoá> } }`. `importAll()` từ chối file không đúng `app`; khoá thiếu được đặt về mặc định. `resetAll()` xoá mọi khoá có tiền tố.
